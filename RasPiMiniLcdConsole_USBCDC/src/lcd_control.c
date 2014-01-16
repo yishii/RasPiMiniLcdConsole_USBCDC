@@ -18,43 +18,57 @@ static void lcd_setsclk(bool data);
 static void lcd_sendData(bool rs, unsigned char data);
 static void lcd_setStartAddress(int address);
 
+// GPIO definition
+#define GPIO_GROUP_CE		1
+#define GPIO_NUM_CE			19
+#define GPIO_GROUP_SCLK		1
+#define	GPIO_NUM_SCLK		20
+#define GPIO_GROUP_MOSI		1
+#define GPIO_NUM_MOSI		22
+#define GPIO_GROUP_LCD_RS	1
+#define GPIO_NUM_LCD_RS		24
+#define GPIO_GROUP_RESET	1
+#define GPIO_NUM_RESET		21
+
 inline void lcd_setce(bool data)
 {
-	GPIOSetBitValue(1, 19, data == true ? 1 : 0);
+	GPIOSetBitValue(GPIO_GROUP_CE, GPIO_NUM_CE, data == true ? 1 : 0);
 }
 
 void LCD_Init()
 {
-	GPIOSetDir(1, 19, 1);
-	GPIOSetDir(1, 20, 1);
-	GPIOSetDir(1, 22, 1);
-	GPIOSetDir(1, 24, 1);
-
-	GPIOSetDir(1, 21, 1);	// LCD_RESET
+	GPIOSetDir(GPIO_GROUP_CE, GPIO_NUM_CE, 1);
+	GPIOSetDir(GPIO_GROUP_SCLK, GPIO_NUM_SCLK, 1);
+	GPIOSetDir(GPIO_GROUP_MOSI, GPIO_NUM_MOSI, 1);
+	GPIOSetDir(GPIO_GROUP_LCD_RS, GPIO_NUM_LCD_RS, 1);
+	GPIOSetDir(GPIO_GROUP_RESET, GPIO_NUM_RESET, 1);
 
 	wait_ms(50);
 
-	GPIOSetBitValue(1, 21, 0);
-	wait_ms(50);
-	GPIOSetBitValue(1, 21, 1);
-	wait_ms(50);
+	GPIOSetBitValue(GPIO_GROUP_RESET, GPIO_NUM_RESET, 0);
+	wait_ms(5);
+	GPIOSetBitValue(GPIO_GROUP_RESET, GPIO_NUM_RESET, 1);
+	wait_ms(1);
 
 	lcd_setce(true);
 	lcd_setsclk(true);
 
-	lcd_sendData(false, 0xae);
+	lcd_sendData(false, 0xe2);	// (14) Reset
+
+	lcd_sendData(false, 0xae);	// (16) Power control set => 0010_1100b
 	lcd_sendData(false, 0xa0);
-	lcd_sendData(false, 0xc8);
-	lcd_sendData(false, 0xa3);
+	lcd_sendData(false, 0xc8);	// (15) Common output mode select => 1 reverse direction
+	lcd_sendData(false, 0xa3);	// (11) LCD bias set => 1/7 bias
 	lcd_sendData(false, 0x2c);
 	wait_ms(2);
 	lcd_sendData(false, 0x2e);
 	wait_ms(2);
 	lcd_sendData(false, 0x2f);
 
-	lcd_sendData(false, 0x23);
-	lcd_sendData(false, 0x81);
-	lcd_sendData(false, 0x1c);
+	lcd_sendData(false, 0x23);	// (17) V0 voltage regulator internal register ratio set
+
+	lcd_sendData(false, 0x81);	// (18) Electric volume mode set
+	lcd_sendData(false, 0x1C);	// (18) Electric volume mode set
 
 	lcd_sendData(false, 0xa4);
 	lcd_sendData(false, 0x40);
@@ -67,27 +81,30 @@ void LCD_Init()
 	LCD_Clear();
 }
 
-static void lcd_setsclk(bool data)
+inline void lcd_setsclk(bool data)
 {
 	GPIOSetBitValue(1, 20, data == true ? 1 : 0);
 }
-static void lcd_setmosi(bool data) {
+inline void lcd_setmosi(bool data) {
 	GPIOSetBitValue(1, 22, data == true ? 1 : 0);
 }
-static void lcd_setrs(bool data) {
-	GPIOSetBitValue(1, 24, data == true ? 1 : 0);
+inline void lcd_setrs(bool data) {
+	GPIOSetBitValue(GPIO_GROUP_LCD_RS, GPIO_NUM_LCD_RS, data == true ? 1 : 0);
 }
 
 static void lcd_sendData(bool rs, unsigned char data) {
 	int i;
 
 	lcd_setce(false);
-	lcd_setrs(rs);
 	for (i = 0; i <= 7; i++) {
+		if((i == 7) && (rs == true)){
+			lcd_setrs(rs);
+		}
 		lcd_setsclk(false);
 		lcd_setmosi((data >> (7 - i)) & 0x01 ? true : false);
 		lcd_setsclk(true);
 	}
+	lcd_setrs(false);
 	lcd_setce(true);
 }
 

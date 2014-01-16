@@ -28,6 +28,7 @@
 #include "lcd_control.h"
 #include "console.h"
 #include "fifo.h"
+#include "gpio.h"
 
 #define UART_BRIDGE 1
 
@@ -215,9 +216,7 @@ static void uart_read(VCOM_DATA_T* pVcom)
     tmp_buf = LPC_USART->RBR;
     pbuf[pVcom->txlen++] = tmp_buf;
     {
-    	//__disable_irq();
     	FIFO_Push(tmp_buf);
-        //__enable_irq();
     }
   } 
 
@@ -494,13 +493,11 @@ int main (void)
     }    
   }
 
-
   /* wait for ever in uart bridge mode */
   while (1){
 	  int fifo_size;
 	  int i;
 	  unsigned char data[1024];
-
 
 	  __disable_irq();
 	  fifo_size = FIFO_GetSize();
@@ -512,7 +509,7 @@ int main (void)
 		  }
 		  __enable_irq();
 		  data[fifo_size] = 0;
-		  CONSOLE_Output(data);
+		  CONSOLE_Output((char*)data);
 	  }
   } 
 }
