@@ -26,11 +26,12 @@ endif
 all: RasPiMiniLcdConsole_USBCDC.axf
 
 dependents:
-	-cd /Users/yishii/Dropbox/lpcXpresso/CMSISv2p00_LPC11Uxx/Release && $(MAKE) clean all
-	-cd /Users/yishii/Dropbox/lpcXpresso/LPC11Uxx_Driver_Lib/Release && $(MAKE) clean all
+	-cd /Users/yishii/Dropbox/lpcXpresso/CMSISv2p00_LPC11Uxx/Release && $(MAKE) all
+	-cd /Users/yishii/Dropbox/lpcXpresso/LPC11Uxx_Driver_Lib/Release && $(MAKE) all
+	-cd /Users/yishii/Dropbox/lpcXpresso/RasPiMiniLcdConsole_USBCDC/Release && $(MAKE) all
 
 # Tool invocations
-RasPiMiniLcdConsole_USBCDC.axf: $(OBJS) $(USER_OBJS) /Users/yishii/Dropbox/lpcXpresso/CMSISv2p00_LPC11Uxx/Release/libCMSISv2p00_LPC11Uxx.a /Users/yishii/Dropbox/lpcXpresso/LPC11Uxx_Driver_Lib/Release/libLPC11Uxx_Driver_Lib.a
+RasPiMiniLcdConsole_USBCDC.axf: $(OBJS) $(USER_OBJS) /Users/yishii/Dropbox/lpcXpresso/CMSISv2p00_LPC11Uxx/Release/libCMSISv2p00_LPC11Uxx.a /Users/yishii/Dropbox/lpcXpresso/LPC11Uxx_Driver_Lib/Release/libLPC11Uxx_Driver_Lib.a /Users/yishii/Dropbox/lpcXpresso/RasPiMiniLcdConsole_USBCDC/Release/RasPiMiniLcdConsole_USBCDC.axf
 	@echo 'Building target: $@'
 	@echo 'Invoking: MCU Linker'
 	arm-none-eabi-gcc -nostdlib -L"/Users/yishii/Dropbox/lpcXpresso/LPC11Uxx_Driver_Lib/Release" -L"/Users/yishii/Dropbox/lpcXpresso/CMSISv2p00_LPC11Uxx/Release" -L"/Users/yishii/Dropbox/lpcXpresso/RasPiMiniLcdConsole_USBCDC/inc" -Xlinker -Map="RasPiMiniLcdConsole_USBCDC.map" -Xlinker --gc-sections -mcpu=cortex-m0 -mthumb -T "RasPiMiniLcdConsole_USBCDC_Debug.ld" -o "RasPiMiniLcdConsole_USBCDC.axf" $(OBJS) $(USER_OBJS) $(LIBS)
@@ -45,12 +46,13 @@ clean:
 
 post-build:
 	-@echo 'Performing post-build steps'
-	-arm-none-eabi-size "RasPiMiniLcdConsole_USBCDC.axf"; arm-none-eabi-objcopy -O binary "RasPiMiniLcdConsole_USBCDC.axf" "RasPiMiniLcdConsole_USBCDC.bin" ; checksum -p LPC11U24_301 -d "RasPiMiniLcdConsole_USBCDC.bin";
+	-arm-none-eabi-size "RasPiMiniLcdConsole_USBCDC.axf" arm-none-eabi-objcopy -O binary "RasPiMiniLcdConsole_USBCDC.axf" "RasPiMiniLcdConsole_USBCDC.bin" ; checksum -p LPC11U24_301 -d "RasPiMiniLcdConsole_USBCDC.bin";
 	-@echo ' '
 
 .PHONY: all clean dependents
 .SECONDARY: post-build
 /Users/yishii/Dropbox/lpcXpresso/CMSISv2p00_LPC11Uxx/Release/libCMSISv2p00_LPC11Uxx.a:
 /Users/yishii/Dropbox/lpcXpresso/LPC11Uxx_Driver_Lib/Release/libLPC11Uxx_Driver_Lib.a:
+/Users/yishii/Dropbox/lpcXpresso/RasPiMiniLcdConsole_USBCDC/Release/RasPiMiniLcdConsole_USBCDC.axf:
 
 -include ../makefile.targets
